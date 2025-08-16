@@ -94,17 +94,49 @@ export const updateProfile = async (req, res) => {
       return res.status(400).json({ message: "Profile pic is required" });
     }
 
-    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+    // Check if the image is a base64 string
+    if (!profilePic.startsWith('data:image/')) {
+      return res.status(400).json({ message: "Invalid image format" });
+    }
+
+    // Extract the base64 data from the data URL
+    const base64Data = profilePic.split(';base64,').pop();
+    
+    // Upload to Cloudinary
+    const uploadResponse = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload(
+        `data:image/jpeg;base64,${base64Data}`,
+        {
+          folder: "chat-app",
+          resource_type: "image",
+          transformation: [
+            { width: 200, height: 200, gravity: "face", crop: "thumb" }
+          ]
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+    });
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { profilePic: uploadResponse.secure_url },
-      { new: true }
+      { new: true, select: "-password" } // Don't return the password
     );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("error in update profile:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error in updateProfile:", error);
+    res.status(500).json({ 
+      message: "Error updating profile picture",
+      error: error.message 
+    });
   }
 };
 
