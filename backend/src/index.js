@@ -23,7 +23,8 @@ app.use(cookieParser());
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://fullstack-chat-app-lake-eight.vercel.app'
+  'https://fullstack-chat-app-lake-eight.vercel.app',
+  'https://fullstack-chat-app-git-main-faraz-ahmads-projects-ba6bcef3.vercel.app'
 ];
 
 const corsOptions = {
