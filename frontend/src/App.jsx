@@ -21,15 +21,16 @@ const App = () => {
   console.log({ onlineUsers });
 
   useEffect(() => {
-    // Only check auth if not in logout state
-    if (!isCheckingAuth) {
+    // Only check auth if not in logout state and not already checking
+    if (!isCheckingAuth && !authUser) {
       checkAuth();
     }
-  }, [checkAuth, isCheckingAuth]);
+  }, [checkAuth, isCheckingAuth, authUser]);
 
   console.log({ authUser, isCheckingAuth });
 
-  if (isCheckingAuth && !authUser)
+  // Show loading only when actively checking auth
+  if (isCheckingAuth)
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader className="size-10 animate-spin" />
@@ -42,9 +43,9 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
-        <Route path="/signup" element={!authUser ? <SignUpPage /> : <Navigate to="/" />} />
+        <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/settings" element={authUser ? <SettingsPage /> : <Navigate to="/login" />} />
         <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
       </Routes>
 
