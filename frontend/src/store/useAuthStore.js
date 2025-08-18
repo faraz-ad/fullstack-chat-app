@@ -154,12 +154,16 @@ export const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
+    console.log("Starting logout process...");
     try {
       await axiosInstance.post("/auth/logout");
+      console.log("Backend logout successful");
     } catch (error) {
       // Even if logout fails on backend, clear local state
       console.error("Logout error:", error);
     } finally {
+      console.log("Clearing local state and localStorage...");
+      
       // Clear local state and disconnect socket
       set({ 
         authUser: null, 
@@ -171,6 +175,7 @@ export const useAuthStore = create((set, get) => ({
       
       // Disconnect socket if it exists
       if (get().socket?.connected) {
+        console.log("Disconnecting socket...");
         get().socket.disconnect();
       }
       
@@ -178,10 +183,11 @@ export const useAuthStore = create((set, get) => ({
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       
+      console.log("Logout complete, authUser should now be null");
       toast.success("Logged out successfully");
       
-      // Navigate to login page
-      window.location.href = '/login';
+      // Let React Router handle the navigation instead of window.location.href
+      // The App.jsx will automatically redirect to /login when authUser becomes null
     }
   },
 
