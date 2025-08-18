@@ -24,20 +24,27 @@ app.use(cookieParser());
 const allowedOrigins = [
   'http://localhost:5173',
   'https://fullstack-chat-app-lake-eight.vercel.app',
-  'https://fullstack-chat-app-git-main-faraz-ahmads-projects-ba6bcef3.vercel.app'
+  'https://fullstack-chat-app-git-main-faraz-ahmads-projects-ba6bcef3.vercel.app',
+  'https://fullstack-chat-app.vercel.app' // Add the main Vercel URL
 ];
+
+// For development, allow all origins
+const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, curl, postman)
-    if (!origin && process.env.NODE_ENV === 'development') return callback(null, true);
-    
-    if (origin && allowedOrigins.includes(origin)) {
+    // In development, allow all origins
+    if (isDevelopment) {
+      return callback(null, true);
+    }
+
+    // In production, check against allowed origins
+    if (!origin || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
     
-    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-    return callback(new Error(msg), false);
+    console.log('Blocked CORS for origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
