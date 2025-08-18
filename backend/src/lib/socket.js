@@ -65,5 +65,5 @@ export const getReceiverSocketId = (receiverId) => {
   return userSocketMap[receiverId];
 };
 
-
-export { io, app, server };
+// Export the socket.io instance for use in other files
+export { io };
