@@ -2,39 +2,45 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 
-const app = express();
-const server = http.createServer(app);
+export const app = express();
+export const server = http.createServer(app);
 
-const initializeSocket = (server) => {
-  const io = new Server(server, {
-    cors: {
-      origin: process.env.NODE_ENV === 'production' 
-        ? [
-            'https://fullstack-chat-app-lake-eight.vercel.app',
-            'https://fullstack-chat-app-git-main-faraz-ahmads-projects-ba6bcef3.vercel.app'
-          ]
-        : 'http://localhost:5173',
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-      credentials: true,
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [
+      'https://fullstack-chat-app.vercel.app',
+      'https://fullstack-chat-app-lake-eight.vercel.app',
+      'https://fullstack-chat-app-git-main-faraz-ahmads-projects-ba6bcef3.vercel.app'
+    ]
+  : ['http://localhost:5173'];
+
+export const io = new Server(server, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log('Blocked socket.io origin:', origin);
+        callback(new Error('Not allowed by CORS'));
+      }
     },
-    transports: ['websocket', 'polling'],
-    allowEIO3: true,
-    pingTimeout: 30000,
-    pingInterval: 25000,
-    cookie: {
-      name: 'io',
-      httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    },
-  });
-
-  return io;
-}
-
-const io = initializeSocket(server);
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+  },
+  path: '/socket.io/',
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  cookie: {
+    name: 'io',
+    httpOnly: true,
+    path: '/',
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  },
+});
 
 // used to store online users
 const userSocketMap = {}; // {userId: socketId}

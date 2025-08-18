@@ -3,31 +3,48 @@ import { io } from 'socket.io-client';
 // Create a singleton socket instance
 let socket;
 
+const getSocketUrl = () => {
+  if (import.meta.env.MODE === 'development') {
+    return 'http://localhost:5001';
+  }
+  // Use the current hostname in production
+  const host = window.location.hostname;
+  return `https://p01--chat-backend--krkkkkf8g4gm.code.run`;
+};
+
 const initializeSocket = (user) => {
   if (!socket) {
-    const socketUrl = import.meta.env.MODE === 'development'
-      ? 'http://localhost:5001'
-      : 'https://p01--chat-backend--krkkkkf8g4gm.code.run';
-      
+    const socketUrl = getSocketUrl();
+    
     socket = io(socketUrl, {
+      path: '/socket.io/',
       withCredentials: true,
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       autoConnect: true,
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 10000,
+      timeout: 20000,
+      forceNew: true,
+      secure: import.meta.env.MODE === 'production',
     });
 
     // Set up event listeners
     socket.on('connect', () => {
-      console.log('Connected to socket server');
+      console.log('Connected to socket server:', socket.id);
       if (user) {
+        console.log('Setting up socket with user:', user._id);
         socket.emit('setup', user);
       }
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('Disconnected from socket server:', reason);
+      console.log('Disconnected from socket server. Reason:', reason);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error.message);
     });
 
     socket.on('error', (error) => {
@@ -40,11 +57,17 @@ const initializeSocket = (user) => {
 
 // Export the functions that main.jsx is trying to import
 export const connectSocket = (user) => {
-  return initializeSocket(user);
+  try {
+    return initializeSocket(user);
+  } catch (error) {
+    console.error('Error connecting socket:', error);
+    throw error;
+  }
 };
 
 export const disconnectSocket = () => {
   if (socket) {
+    console.log('Disconnecting socket...');
     socket.disconnect();
     socket = null;
   }
