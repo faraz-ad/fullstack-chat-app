@@ -8,10 +8,10 @@ export const server = http.createServer(app);
 const allowedOrigins = process.env.NODE_ENV === 'production' 
   ? [
       'https://fullstack-chat-app.vercel.app',
-      'https://fullstack-chat-app-lake-eight.vercel.app',
+      'https://fullstack-chat-app-lake-eight.vercel.app', // Your specific Vercel URL
       'https://fullstack-chat-app-git-main-faraz-ahmads-projects-ba6bcef3.vercel.app'
     ]
-  : ['http://localhost:5173'];
+  : ['http://localhost:5173', 'http://localhost:3000'];
 
 const io = new Server(server, {
   cors: {

@@ -23,8 +23,11 @@ app.use(cookieParser());
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:3000',
+  'https://fullstack-chat-app-lake-eight.vercel.app', // Your Vercel frontend
+  'https://fullstack-chat-app.vercel.app', // Main Vercel domain
   /https?:\/\/fullstack-chat-app(-\w+)*\.vercel\.app$/, // Match any Vercel preview URL
-  'https://fullstack-chat-app.vercel.app'
+  'https://p01--chat-backend--krkkkkf8g4gm.code.run' // Your Northflank backend
 ];
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
