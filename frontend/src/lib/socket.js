@@ -3,40 +3,43 @@ import { io } from 'socket.io-client';
 // Create a singleton socket instance
 let socket;
 
-export const connectSocket = (userId) => {
+export const initializeSocket = (user) => {
   if (!socket) {
-    // Use the VITE_SOCKET_URL if set, otherwise use the same origin
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || '';
-    
+    const socketUrl = import.meta.env.MODE === 'development'
+      ? 'http://localhost:5001'
+      : 'https://p01--chat-backend--krkkkkf8g4gm.code.run';
+      
     socket = io(socketUrl, {
       withCredentials: true,
-      autoConnect: false,
-      query: { userId },
+      transports: ['websocket'],
+      autoConnect: true,
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    // Set up event listeners
+    socket.on('connect', () => {
+      console.log('Connected to socket server');
+      if (user) {
+        socket.emit('setup', user);
+      }
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('Disconnected from socket server:', reason);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
     });
   }
 
-  if (!socket.connected) {
-    socket.connect();
-  }
-
   return socket;
 };
 
-export const disconnectSocket = () => {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
-};
+export const getSocket = () => socket;
 
-export const getSocket = () => {
-  if (!socket) {
-    throw new Error('Socket not initialized. Call connectSocket first.');
-  }
-  return socket;
-};
-
-// Socket event constants
 export const SOCKET_EVENTS = {
   CONNECT: 'connect',
   DISCONNECT: 'disconnect',
