@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 // Create a singleton socket instance
 let socket;
 
-export const initializeSocket = (user) => {
+const initializeSocket = (user) => {
   if (!socket) {
     const socketUrl = import.meta.env.MODE === 'development'
       ? 'http://localhost:5001'
@@ -30,12 +30,24 @@ export const initializeSocket = (user) => {
       console.log('Disconnected from socket server:', reason);
     });
 
-    socket.on('connect_error', (error) => {
-      console.error('Socket connection error:', error);
+    socket.on('error', (error) => {
+      console.error('Socket error:', error);
     });
   }
 
   return socket;
+};
+
+// Export the functions that main.jsx is trying to import
+export const connectSocket = (user) => {
+  return initializeSocket(user);
+};
+
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
 };
 
 export const getSocket = () => socket;
