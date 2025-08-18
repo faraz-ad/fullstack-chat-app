@@ -117,11 +117,10 @@ export const useAuthStore = create((set, get) => ({
       // Even if logout fails on backend, clear local state
       console.error("Logout error:", error);
     } finally {
-      // Always clear local state and disconnect socket
+      // Clear local state and disconnect socket
       set({ 
         authUser: null, 
-        isCheckingAuth: false, 
-        skipNextAuthCheck: true,
+        isCheckingAuth: false,
         onlineUsers: [],
         socket: null 
       });
@@ -137,8 +136,8 @@ export const useAuthStore = create((set, get) => ({
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       
-      // Force a page refresh to clear any cached state
-      window.location.href = '/login';
+      // Let React Router handle the navigation
+      // The AuthContext will redirect to login automatically
     }
   },
 

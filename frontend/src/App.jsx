@@ -15,10 +15,17 @@ import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
-  const { authUser, isCheckingAuth, onlineUsers } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
 
   console.log({ onlineUsers });
+
+  useEffect(() => {
+    // Only check auth if not in logout state
+    if (!isCheckingAuth) {
+      checkAuth();
+    }
+  }, [checkAuth, isCheckingAuth]);
 
   console.log({ authUser, isCheckingAuth });
 
