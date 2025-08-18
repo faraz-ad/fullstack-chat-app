@@ -91,6 +91,17 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Backend is running" });
 });
 
+// Test endpoint for CORS debugging
+app.get("/api/test", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    message: "CORS test successful",
+    timestamp: new Date().toISOString(),
+    origin: req.headers.origin,
+    userAgent: req.headers['user-agent']
+  });
+});
+
 // Debug endpoint for troubleshooting
 app.get("/api/debug", (req, res) => {
   const cookies = req.headers.cookie;
