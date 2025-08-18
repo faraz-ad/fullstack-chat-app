@@ -10,7 +10,12 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is logged in on initial load
   useEffect(() => {
-    checkAuth();
+    // Add a small delay to ensure backend is fully ready
+    const timer = setTimeout(() => {
+      checkAuth();
+    }, 1000);
+    
+    return () => clearTimeout(timer);
   }, [checkAuth]);
 
   // Redirect to login if not authenticated

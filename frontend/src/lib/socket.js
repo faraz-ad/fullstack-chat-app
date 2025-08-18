@@ -7,7 +7,8 @@ const getSocketUrl = () => {
   if (import.meta.env.MODE === "development") {
     return 'http://localhost:5001';
   }
-  // In production, use the Northflank backend URL
+  // In production, ALWAYS use the Northflank backend URL
+  // Don't use environment variables that might point to Vercel
   return 'https://p01--chat-backend--krkkkkf8g4gm.code.run';
 };
 

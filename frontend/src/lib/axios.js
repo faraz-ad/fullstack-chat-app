@@ -17,6 +17,9 @@ export const axiosInstance = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
   },
   timeout: 15000, // Increased timeout for production
+  // Add retry logic for failed requests
+  retry: 3,
+  retryDelay: 1000,
 });
 
 // Request interceptor
@@ -30,6 +33,11 @@ axiosInstance.interceptors.request.use(
     
     // Ensure withCredentials is set for cross-domain requests
     config.withCredentials = true;
+    
+    // Add timestamp to prevent caching issues
+    if (config.method === 'get') {
+      config.params = { ...config.params, _t: Date.now() };
+    }
     
     return config;
   },

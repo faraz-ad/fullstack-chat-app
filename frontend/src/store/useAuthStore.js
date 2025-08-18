@@ -3,7 +3,7 @@ import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
+const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "https://p01--chat-backend--krkkkkf8g4gm.code.run";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -16,6 +16,13 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
+      // First check if backend is healthy
+      try {
+        await axiosInstance.get("/health");
+      } catch (healthError) {
+        console.log("Backend health check failed, retrying auth check anyway");
+      }
+      
       const res = await axiosInstance.get("/auth/check");
       set({ authUser: res.data });
       get().connectSocket();
