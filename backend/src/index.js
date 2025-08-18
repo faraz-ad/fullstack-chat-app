@@ -23,37 +23,64 @@ app.use(cookieParser());
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://fullstack-chat-app-lake-eight.vercel.app',
-  'https://fullstack-chat-app-git-main-faraz-ahmads-projects-ba6bcef3.vercel.app',
-  'https://fullstack-chat-app.vercel.app' // Add the main Vercel URL
+  /https?:\/\/fullstack-chat-app(-\w+)*\.vercel\.app$/, // Match any Vercel preview URL
+  'https://fullstack-chat-app.vercel.app'
 ];
 
-// For development, allow all origins
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // In development, allow all origins
-    if (isDevelopment) {
+    // Allow requests with no origin (like mobile apps, curl, postman)
+    if (!origin && isDevelopment) {
       return callback(null, true);
     }
 
-    // In production, check against allowed origins
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Check if the origin matches any allowed patterns
+    if (isDevelopment || !origin || 
+        allowedOrigins.some(pattern => 
+          pattern instanceof RegExp 
+            ? pattern.test(origin) 
+            : pattern === origin
+        )
+    ) {
+      console.log('Allowed origin:', origin);
       return callback(null, true);
     }
     
     console.log('Blocked CORS for origin:', origin);
-    return callback(new Error('Not allowed by CORS'));
+    return callback(new Error(`Origin ${origin} not allowed by CORS`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  exposedHeaders: ['set-cookie'],
-  optionsSuccessStatus: 200,
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With', 
+    'Accept',
+    'X-CSRF-Token',
+    'X-Requested-With',
+    'Accept',
+    'Accept-Version',
+    'Content-Length',
+    'Content-MD5',
+    'Content-Type',
+    'Date',
+    'X-Api-Version'
+  ],
+  exposedHeaders: [
+    'set-cookie',
+    'Content-Length',
+    'X-Foo',
+    'X-Bar'
+  ],
+  optionsSuccessStatus: 204, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  preflightContinue: false
 };
 
+// Apply CORS with options
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Enable preflight for all routes
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
