@@ -4,12 +4,11 @@ import { io } from 'socket.io-client';
 let socket;
 
 const getSocketUrl = () => {
-  if (import.meta.env.MODE === 'development') {
+  if (import.meta.env.MODE === "development") {
     return 'http://localhost:5001';
   }
-  // Use the current hostname in production
-  const host = window.location.hostname;
-  return `https://p01--chat-backend--krkkkkf8g4gm.code.run`;
+  // In production, use the Northflank backend URL
+  return 'https://p01--chat-backend--krkkkkf8g4gm.code.run';
 };
 
 const initializeSocket = (user) => {

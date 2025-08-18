@@ -4,8 +4,9 @@ const getBaseUrl = () => {
   if (import.meta.env.MODE === "development") {
     return "http://localhost:5001/api";
   }
-  // In production, use the full URL including the path
-  return "https://p01--chat-backend--krkkkkf8g4gm.code.run/api";};
+  // In production, use the Northflank backend URL
+  return "https://p01--chat-backend--krkkkkf8g4gm.code.run/api";
+};
 
 export const axiosInstance = axios.create({
   baseURL: getBaseUrl(),
@@ -15,13 +16,17 @@ export const axiosInstance = axios.create({
     'Accept': 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   },
-  timeout: 10000, // 10 seconds
+  timeout: 15000, // Increased timeout for production
 });
 
 // Request interceptor
 axiosInstance.interceptors.request.use(
   (config) => {
-    // You can add auth tokens here if needed
+    // Add auth token if it exists
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -43,8 +48,8 @@ axiosInstance.interceptors.response.use(
         headers: error.response.headers,
       });
     } else if (error.request) {
-      // The request was made but no response was received
-      console.error('No response received:', error.request);
+      // The request was made but no response was received (CORS error, network error, etc.)
+      console.error('No response received (CORS/Network error):', error.request);
     } else {
       // Something happened in setting up the request
       console.error('Request error:', error.message);

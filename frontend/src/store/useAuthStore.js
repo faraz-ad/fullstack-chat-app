@@ -22,6 +22,17 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       console.log("Error in checkAuth:", error);
+      // Handle different types of errors
+      if (error.response) {
+        // Server responded with error status
+        console.error("Auth check failed:", error.response.data);
+      } else if (error.request) {
+        // Request was made but no response (CORS/Network error)
+        console.error("Auth check network error:", error.request);
+      } else {
+        // Something else happened
+        console.error("Auth check error:", error.message);
+      }
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -36,7 +47,13 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Account created successfully");
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      if (error.response) {
+        toast.error(error.response.data?.message || "Signup failed");
+      } else if (error.request) {
+        toast.error("Network error. Please check your connection or try again later.");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       set({ isSigningUp: false });
     }
@@ -51,7 +68,19 @@ export const useAuthStore = create((set, get) => ({
 
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      // Handle different types of errors
+      if (error.response) {
+        // Server responded with error status
+        toast.error(error.response.data?.message || "Login failed");
+      } else if (error.request) {
+        // Request was made but no response (CORS/Network error)
+        toast.error("Network error. Please check your connection or try again later.");
+        console.error("Network error:", error.request);
+      } else {
+        // Something else happened
+        toast.error("An unexpected error occurred");
+        console.error("Login error:", error.message);
+      }
     } finally {
       set({ isLoggingIn: false });
     }
@@ -64,7 +93,13 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Logged out successfully");
       get().disconnectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      if (error.response) {
+        toast.error(error.response.data?.message || "Logout failed");
+      } else if (error.request) {
+        toast.error("Network error during logout");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     }
   },
 
@@ -76,7 +111,13 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Profile updated successfully");
     } catch (error) {
       console.log("error in update profile:", error);
-      toast.error(error.response.data.message);
+      if (error.response) {
+        toast.error(error.response.data?.message || "Profile update failed");
+      } else if (error.request) {
+        toast.error("Network error. Please check your connection or try again later.");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       set({ isUpdatingProfile: false });
     }
