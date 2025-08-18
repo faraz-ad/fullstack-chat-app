@@ -13,7 +13,7 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
     ]
   : ['http://localhost:5173'];
 
-export const io = new Server(server, {
+const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
