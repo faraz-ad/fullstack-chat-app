@@ -13,6 +13,9 @@ const App = () => {
   const { theme } = useThemeStore();
   const { authUser } = useAuthStore();
 
+  // Add debugging
+  console.log("App rendered - authUser:", authUser);
+
   return (
     <div data-theme={theme}>
       <Navbar />

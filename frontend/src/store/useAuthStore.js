@@ -13,7 +13,7 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
-  skipAuthCheck: false, // Add flag to skip auth check after logout
+  skipAuthCheck: false, // Re-introduced and refined
 
   checkAuth: async () => {
     // Skip auth check if flag is set (e.g., after logout)
@@ -27,33 +27,28 @@ export const useAuthStore = create((set, get) => ({
     }
     
     try {
-      // Set auth user to null first to allow navigation
+      // Set auth user to null first to allow navigation (latest attempt)
       set({ authUser: null, isCheckingAuth: false });
       
       // Try to check auth in background (non-blocking)
       try {
         const res = await axiosInstance.get("/auth/check");
+        console.log("Auth check successful:", res.data);
         set({ authUser: res.data });
         get().connectSocket();
       } catch (error) {
         console.log("Error in checkAuth:", error);
-        // Handle different types of errors
         if (error.response) {
-          // Server responded with error status
           if (error.response.status === 401) {
-            // User is not authenticated, this is normal for new visitors
             console.log("User not authenticated, this is normal");
           } else {
             console.error("Auth check failed:", error.response.data);
           }
         } else if (error.request) {
-          // Request was made but no response (CORS/Network error)
           console.error("Auth check network error:", error.request);
         } else {
-          // Something else happened
           console.error("Auth check error:", error.message);
         }
-        // Keep authUser as null to allow navigation
       }
     } catch (error) {
       console.error("Unexpected error in checkAuth:", error);
@@ -62,16 +57,20 @@ export const useAuthStore = create((set, get) => ({
   },
 
   signup: async (data) => {
+    console.log("Starting signup process...");
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
+      console.log("Signup successful:", res.data);
       set({ authUser: res.data });
       toast.success("Account created successfully");
       get().connectSocket();
       
       // Navigate to home page after successful signup
+      console.log("Redirecting to home page...");
       window.location.href = '/';
     } catch (error) {
+      console.error("Signup error:", error);
       if (error.response) {
         toast.error(error.response.data?.message || "Signup failed");
       } else if (error.request) {
@@ -85,9 +84,11 @@ export const useAuthStore = create((set, get) => ({
   },
 
   login: async (data) => {
+    console.log("Starting login process...");
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/auth/login", data);
+      console.log("Login successful:", res.data);
       
       // Set the user data immediately after successful login
       set({ authUser: res.data });
@@ -99,9 +100,11 @@ export const useAuthStore = create((set, get) => ({
       }, 100);
       
       // Navigate to home page after successful login
+      console.log("Redirecting to home page...");
       window.location.href = '/';
       
     } catch (error) {
+      console.error("Login error:", error);
       // Handle different types of errors
       if (error.response) {
         // Server responded with error status
