@@ -14,14 +14,10 @@ export const generateToken = (userId, res) => {
   };
 
   // For cross-domain authentication between Vercel and Northflank
-  if (process.env.NODE_ENV === "production" && process.env.FRONTEND_URL) {
-    try {
-      const url = new URL(process.env.FRONTEND_URL);
-      // Don't set domain for cross-domain cookies, let the browser handle it
-      // The sameSite: 'none' and secure: true will allow cross-domain cookies
-    } catch (error) {
-      console.warn("Invalid FRONTEND_URL, using default cookie settings");
-    }
+  if (process.env.NODE_ENV === "production") {
+    // Don't set domain for cross-domain cookies
+    // The sameSite: 'none' and secure: true will allow cross-domain cookies
+    console.log('Setting production cookie with cross-domain support');
   }
 
   res.cookie("jwt", token, cookieOptions);

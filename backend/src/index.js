@@ -69,7 +69,8 @@ const corsOptions = {
     'Content-MD5',
     'Content-Type',
     'Date',
-    'X-Api-Version'
+    'X-Api-Version',
+    'Cookie' // Allow Cookie header
   ],
   exposedHeaders: [
     'set-cookie',
@@ -77,7 +78,7 @@ const corsOptions = {
     'X-Foo',
     'X-Bar'
   ],
-  optionsSuccessStatus: 204, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  optionsSuccessStatus: 200, // Changed from 204 to 200 for better compatibility
   preflightContinue: false
 };
 
@@ -88,6 +89,23 @@ app.options('*', cors(corsOptions)); // Enable preflight for all routes
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Backend is running" });
+});
+
+// Debug endpoint for troubleshooting
+app.get("/api/debug", (req, res) => {
+  const cookies = req.headers.cookie;
+  const jwtCookie = req.cookies.jwt;
+  
+  res.json({ 
+    status: "debug", 
+    message: "Debug endpoint",
+    hasCookies: !!cookies,
+    hasJwtCookie: !!jwtCookie,
+    cookieCount: cookies ? cookies.split(';').length : 0,
+    userAgent: req.headers['user-agent'],
+    origin: req.headers.origin,
+    referer: req.headers.referer
+  });
 });
 
 // API routes
