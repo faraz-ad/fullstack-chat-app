@@ -17,7 +17,6 @@ export const useAuthStore = create((set, get) => ({
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/auth/check");
-
       set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {
@@ -25,7 +24,12 @@ export const useAuthStore = create((set, get) => ({
       // Handle different types of errors
       if (error.response) {
         // Server responded with error status
-        console.error("Auth check failed:", error.response.data);
+        if (error.response.status === 401) {
+          // User is not authenticated, this is normal for new visitors
+          console.log("User not authenticated, redirecting to login");
+        } else {
+          console.error("Auth check failed:", error.response.data);
+        }
       } else if (error.request) {
         // Request was made but no response (CORS/Network error)
         console.error("Auth check network error:", error.request);
@@ -63,10 +67,16 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/auth/login", data);
+      
+      // Set the user data immediately after successful login
       set({ authUser: res.data });
       toast.success("Logged in successfully");
 
-      get().connectSocket();
+      // Wait a moment for the cookie to be set, then connect socket
+      setTimeout(() => {
+        get().connectSocket();
+      }, 100);
+      
     } catch (error) {
       // Handle different types of errors
       if (error.response) {
@@ -89,17 +99,17 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
-      set({ authUser: null });
-      toast.success("Logged out successfully");
-      get().disconnectSocket();
     } catch (error) {
-      if (error.response) {
-        toast.error(error.response.data?.message || "Logout failed");
-      } else if (error.request) {
-        toast.error("Network error during logout");
-      } else {
-        toast.error("An unexpected error occurred");
-      }
+      // Even if logout fails on backend, clear local state
+      console.error("Logout error:", error);
+    } finally {
+      // Always clear local state and disconnect socket
+      set({ authUser: null });
+      get().disconnectSocket();
+      toast.success("Logged out successfully");
+      
+      // Redirect to login page
+      window.location.href = '/login';
     }
   },
 
