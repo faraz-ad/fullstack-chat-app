@@ -13,12 +13,32 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
-  skipAuthCheck: false, // Re-introduced and refined
+  skipAuthCheck: false,
+
+  // Initialize auth state from localStorage or cookies
+  initializeAuth: async () => {
+    try {
+      set({ isCheckingAuth: true });
+      
+      // Try to get user from localStorage first
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        set({ authUser: user, isCheckingAuth: false });
+        get().connectSocket();
+        return;
+      }
+
+      // If no stored user, check with backend
+      await get().checkAuth();
+    } catch (error) {
+      console.error("Error initializing auth:", error);
+      set({ authUser: null, isCheckingAuth: false });
+    }
+  },
 
   checkAuth: async () => {
-    // Skip auth check if flag is set (e.g., after logout)
     if (get().skipAuthCheck) {
-      // Wait a moment before re-enabling auth checks
       setTimeout(() => {
         set({ skipAuthCheck: false });
       }, 500);
@@ -27,20 +47,23 @@ export const useAuthStore = create((set, get) => ({
     }
     
     try {
-      // Set auth user to null first to allow navigation (latest attempt)
-      set({ authUser: null, isCheckingAuth: false });
+      set({ isCheckingAuth: false });
       
-      // Try to check auth in background (non-blocking)
       try {
         const res = await axiosInstance.get("/auth/check");
         console.log("Auth check successful:", res.data);
-        set({ authUser: res.data });
+        const user = res.data;
+        
+        // Store user in localStorage for persistence
+        localStorage.setItem('user', JSON.stringify(user));
+        set({ authUser: user });
         get().connectSocket();
       } catch (error) {
         console.log("Error in checkAuth:", error);
         if (error.response) {
           if (error.response.status === 401) {
             console.log("User not authenticated, this is normal");
+            localStorage.removeItem('user');
           } else {
             console.error("Auth check failed:", error.response.data);
           }
@@ -49,6 +72,7 @@ export const useAuthStore = create((set, get) => ({
         } else {
           console.error("Auth check error:", error.message);
         }
+        set({ authUser: null });
       }
     } catch (error) {
       console.error("Unexpected error in checkAuth:", error);
@@ -62,7 +86,12 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", data);
       console.log("Signup successful:", res.data);
-      set({ authUser: res.data });
+      
+      const user = res.data;
+      // Store user in localStorage for persistence
+      localStorage.setItem('user', JSON.stringify(user));
+      set({ authUser: user });
+      
       toast.success("Account created successfully");
       get().connectSocket();
       
@@ -91,8 +120,11 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.post("/auth/login", data);
       console.log("Login successful:", res.data);
       
-      // Set the user data immediately after successful login
-      set({ authUser: res.data });
+      const user = res.data;
+      // Store user in localStorage for persistence
+      localStorage.setItem('user', JSON.stringify(user));
+      set({ authUser: user });
+      
       toast.success("Logged in successfully");
 
       // Wait a moment for the cookie to be set, then connect socket
@@ -142,14 +174,14 @@ export const useAuthStore = create((set, get) => ({
         get().socket.disconnect();
       }
       
+      // Clear localStorage
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      
       toast.success("Logged out successfully");
       
-      // Clear any stored tokens or user data
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      
-      // Let React Router handle the navigation
-      // The AuthContext will redirect to login automatically
+      // Navigate to login page
+      window.location.href = '/login';
     }
   },
 

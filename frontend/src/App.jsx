@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
 import SignUpPage from "./pages/SignUpPage";
@@ -11,10 +12,24 @@ import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const { theme } = useThemeStore();
-  const { authUser } = useAuthStore();
+  const { authUser, isCheckingAuth, initializeAuth } = useAuthStore();
+
+  // Initialize auth state when app loads
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
 
   // Add debugging
-  console.log("App rendered - authUser:", authUser);
+  console.log("App rendered - authUser:", authUser, "isCheckingAuth:", isCheckingAuth);
+
+  // Show loading state while checking auth
+  if (isCheckingAuth) {
+    return (
+      <div data-theme={theme} className="h-screen flex items-center justify-center">
+        <div className="loading loading-spinner loading-lg"></div>
+      </div>
+    );
+  }
 
   return (
     <div data-theme={theme}>
