@@ -7,9 +7,8 @@ const getSocketUrl = () => {
   if (import.meta.env.MODE === "development") {
     return 'http://localhost:5001';
   }
-  // In production, ALWAYS use the Northflank backend URL
-  // Don't use environment variables that might point to Vercel
-  return 'https://p01--chat-backend--krkkkkf8g4gm.code.run';
+  // In production, use environment variable or fallback to Northflank backend
+  return import.meta.env.VITE_SOCKET_URL || 'https://p01--chat-backend--krkkkkf8g4gm.code.run';
 };
 
 const initializeSocket = (user) => {
@@ -27,7 +26,7 @@ const initializeSocket = (user) => {
       reconnectionDelayMax: 10000,
       timeout: 20000,
       forceNew: true,
-      secure: import.meta.env.MODE === 'production',
+      secure: import.meta.env.MODE === "production",
     });
 
     // Set up event listeners

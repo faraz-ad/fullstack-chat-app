@@ -4,8 +4,8 @@ const getBaseUrl = () => {
   if (import.meta.env.MODE === "development") {
     return "http://localhost:5001/api";
   }
-  // In production, use the Northflank backend URL
-  return "https://p01--chat-backend--krkkkkf8g4gm.code.run/api";
+  // In production, use environment variable or fallback to Northflank backend URL
+  return import.meta.env.VITE_API_BASE_URL || "https://p01--chat-backend--krkkkkf8g4gm.code.run/api";
 };
 
 export const axiosInstance = axios.create({
@@ -17,9 +17,6 @@ export const axiosInstance = axios.create({
     'X-Requested-With': 'XMLHttpRequest',
   },
   timeout: 15000, // Increased timeout for production
-  // Add retry logic for failed requests
-  retry: 3,
-  retryDelay: 1000,
 });
 
 // Request interceptor
@@ -33,11 +30,6 @@ axiosInstance.interceptors.request.use(
     
     // Ensure withCredentials is set for cross-domain requests
     config.withCredentials = true;
-    
-    // Add timestamp to prevent caching issues
-    if (config.method === 'get') {
-      config.params = { ...config.params, _t: Date.now() };
-    }
     
     return config;
   },

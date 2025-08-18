@@ -87,6 +87,7 @@ export const useAuthStore = create((set, get) => ({
     console.log("Starting login process...");
     set({ isLoggingIn: true });
     try {
+      console.log("Making login request to:", axiosInstance.defaults.baseURL);
       const res = await axiosInstance.post("/auth/login", data);
       console.log("Login successful:", res.data);
       
@@ -105,15 +106,14 @@ export const useAuthStore = create((set, get) => ({
       
     } catch (error) {
       console.error("Login error:", error);
-      // Handle different types of errors
       if (error.response) {
-        // Server responded with error status
+        console.error("Response error:", error.response.status, error.response.data);
         toast.error(error.response.data?.message || "Login failed");
       } else if (error.request) {
-        // Request was made but no response (CORS/Network error)
+        console.error("Network error:", error.request);
         toast.error("Network error. Please check your connection or try again later.");
       } else {
-        // Something else happened
+        console.error("Request setup error:", error.message);
         toast.error("An unexpected error occurred");
       }
     } finally {
