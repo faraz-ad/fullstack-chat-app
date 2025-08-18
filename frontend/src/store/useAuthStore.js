@@ -115,8 +115,8 @@ export const useAuthStore = create((set, get) => ({
       get().disconnectSocket();
       toast.success("Logged out successfully");
       
-      // Redirect to login page
-      window.location.href = '/login';
+      // Use React Router navigation instead of window.location.href
+      // The AuthContext will handle the redirect automatically
     }
   },
 
