@@ -68,6 +68,9 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data });
       toast.success("Account created successfully");
       get().connectSocket();
+      
+      // Navigate to home page after successful signup
+      window.location.href = '/';
     } catch (error) {
       if (error.response) {
         toast.error(error.response.data?.message || "Signup failed");
@@ -95,6 +98,9 @@ export const useAuthStore = create((set, get) => ({
         get().connectSocket();
       }, 100);
       
+      // Navigate to home page after successful login
+      window.location.href = '/';
+      
     } catch (error) {
       // Handle different types of errors
       if (error.response) {
@@ -103,11 +109,9 @@ export const useAuthStore = create((set, get) => ({
       } else if (error.request) {
         // Request was made but no response (CORS/Network error)
         toast.error("Network error. Please check your connection or try again later.");
-        console.error("Network error:", error.request);
       } else {
         // Something else happened
         toast.error("An unexpected error occurred");
-        console.error("Login error:", error.message);
       }
     } finally {
       set({ isLoggingIn: false });
