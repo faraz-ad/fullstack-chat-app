@@ -2,8 +2,7 @@ import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import AuthImagePattern from "../components/AuthImagePattern";
 import { Link } from "react-router-dom";
-import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, TestTube } from "lucide-react";
-import { axiosInstance } from "../lib/axios";
+import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare } from "lucide-react";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -16,25 +15,6 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     login(formData);
-  };
-
-  // Test backend connection
-  const testBackend = async () => {
-    try {
-      console.log("Testing backend connection...");
-      const response = await axiosInstance.get("/test");
-      console.log("Backend test successful:", response.data);
-      alert(`Backend test successful: ${response.data.message}`);
-    } catch (error) {
-      console.error("Backend test failed:", error);
-      if (error.response) {
-        alert(`Backend test failed: ${error.response.status} - ${error.response.data?.message || 'Unknown error'}`);
-      } else if (error.request) {
-        alert("Backend test failed: No response received (CORS/Network error)");
-      } else {
-        alert(`Backend test failed: ${error.message}`);
-      }
-    }
   };
 
   return (
@@ -54,18 +34,6 @@ const LoginPage = () => {
               <h1 className="text-2xl font-bold mt-2">Welcome Back</h1>
               <p className="text-base-content/60">Sign in to your account</p>
             </div>
-          </div>
-
-          {/* Test Backend Button */}
-          <div className="text-center">
-            <button
-              onClick={testBackend}
-              className="btn btn-outline btn-sm gap-2"
-              type="button"
-            >
-              <TestTube className="h-4 w-4" />
-              Test Backend
-            </button>
           </div>
 
           {/* Form */}

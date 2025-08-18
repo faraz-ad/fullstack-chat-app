@@ -1,16 +1,12 @@
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { useThemeStore } from "../store/useThemeStore";
-import { LogOut, MessageSquare, Settings, User, Sun, Moon } from "lucide-react";
+import { LogOut, MessageSquare, Settings, User, Palette } from "lucide-react";
+import { THEMES } from "../constants";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
   const { theme, setTheme } = useThemeStore();
-
-  const toggleTheme = () => {
-    const newTheme = theme === "coffee" ? "light" : "coffee";
-    setTheme(newTheme);
-  };
 
   return (
     <header
@@ -29,21 +25,31 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className="btn btn-sm btn-ghost gap-2"
-              title={`Switch to ${theme === "coffee" ? "light" : "dark"} theme`}
-            >
-              {theme === "coffee" ? (
-                <Sun className="w-4 h-4" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
-              <span className="hidden sm:inline">
-                {theme === "coffee" ? "Light" : "Dark"}
-              </span>
-            </button>
+            {/* Theme Selector Dropdown */}
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn btn-sm btn-ghost gap-2">
+                <Palette className="w-4 h-4" />
+                <span className="hidden sm:inline">Theme</span>
+              </div>
+              <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 max-h-96 overflow-y-auto">
+                {THEMES.map((t) => (
+                  <li key={t}>
+                    <button
+                      onClick={() => setTheme(t)}
+                      className={`flex items-center gap-2 ${theme === t ? 'bg-primary text-primary-content' : ''}`}
+                    >
+                      <div className="relative h-4 w-4 rounded overflow-hidden" data-theme={t}>
+                        <div className="absolute inset-0 grid grid-cols-2 gap-px p-0.5">
+                          <div className="rounded bg-primary"></div>
+                          <div className="rounded bg-secondary"></div>
+                        </div>
+                      </div>
+                      <span className="capitalize">{t}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <Link
               to={"/settings"}
