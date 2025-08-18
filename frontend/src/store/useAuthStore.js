@@ -13,8 +13,15 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
+  skipNextAuthCheck: false, // Add flag to skip auth check after logout
 
   checkAuth: async () => {
+    // Skip auth check if flag is set (e.g., after logout)
+    if (get().skipNextAuthCheck) {
+      set({ skipNextAuthCheck: false, isCheckingAuth: false });
+      return;
+    }
+    
     try {
       // First check if backend is healthy
       try {
@@ -111,9 +118,13 @@ export const useAuthStore = create((set, get) => ({
       console.error("Logout error:", error);
     } finally {
       // Always clear local state and disconnect socket
-      set({ authUser: null });
+      set({ authUser: null, isCheckingAuth: false, skipNextAuthCheck: true });
       get().disconnectSocket();
       toast.success("Logged out successfully");
+      
+      // Clear any stored tokens or user data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       
       // Use React Router navigation instead of window.location.href
       // The AuthContext will handle the redirect automatically
