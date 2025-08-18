@@ -13,12 +13,16 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
-  skipNextAuthCheck: false, // Add flag to skip auth check after logout
+  skipAuthCheck: false, // Add flag to skip auth check after logout
 
   checkAuth: async () => {
     // Skip auth check if flag is set (e.g., after logout)
-    if (get().skipNextAuthCheck) {
-      set({ skipNextAuthCheck: false, isCheckingAuth: false });
+    if (get().skipAuthCheck) {
+      // Wait a moment before re-enabling auth checks
+      setTimeout(() => {
+        set({ skipAuthCheck: false });
+      }, 500);
+      set({ isCheckingAuth: false });
       return;
     }
     
@@ -122,7 +126,8 @@ export const useAuthStore = create((set, get) => ({
         authUser: null, 
         isCheckingAuth: false,
         onlineUsers: [],
-        socket: null 
+        socket: null,
+        skipAuthCheck: true // Skip next auth check
       });
       
       // Disconnect socket if it exists
