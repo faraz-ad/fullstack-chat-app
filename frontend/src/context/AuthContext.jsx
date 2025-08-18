@@ -1,39 +1,17 @@
-import { createContext, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/useAuthStore';
+import { createContext, useContext } from 'react';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const { authUser, isCheckingAuth, checkAuth } = useAuthStore();
-  const navigate = useNavigate();
-
-  // Check if user is logged in on initial load
-  useEffect(() => {
-    // Add a small delay to ensure backend is fully ready
-    const timer = setTimeout(() => {
-      checkAuth();
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [checkAuth]);
-
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isCheckingAuth && !authUser) {
-      navigate('/login');
-    }
-  }, [authUser, isCheckingAuth, navigate]);
-
   return (
     <AuthContext.Provider
       value={{
-        user: authUser,
-        isAuthenticated: !!authUser,
-        loading: isCheckingAuth,
+        user: null,
+        isAuthenticated: false,
+        loading: false,
       }}
     >
-      {!isCheckingAuth && children}
+      {children}
     </AuthContext.Provider>
   );
 };
