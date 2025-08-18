@@ -20,12 +20,12 @@ const App = () => {
 
   console.log({ onlineUsers });
 
-  useEffect(() => {
-    // Only check auth if not in logout state and not already checking
-    if (!isCheckingAuth && !authUser) {
-      checkAuth();
-    }
-  }, [checkAuth, isCheckingAuth, authUser]);
+  // TEMPORARILY DISABLE AUTH CHECK FOR TESTING
+  // useEffect(() => {
+  //   if (!isCheckingAuth && !authUser) {
+  //     checkAuth();
+  //   }
+  // }, [checkAuth, isCheckingAuth, authUser]);
 
   console.log({ authUser, isCheckingAuth });
 
@@ -42,11 +42,11 @@ const App = () => {
       <Navbar />
 
       <Routes>
-        <Route path="/" element={authUser ? <HomePage /> : <Navigate to="/login" />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/login" element={!authUser ? <LoginPage /> : <Navigate to="/" />} />
-        <Route path="/settings" element={authUser ? <SettingsPage /> : <Navigate to="/login" />} />
-        <Route path="/profile" element={authUser ? <ProfilePage /> : <Navigate to="/login" />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
 
       <Toaster />
