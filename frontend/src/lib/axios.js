@@ -27,6 +27,10 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Ensure withCredentials is set for cross-domain requests
+    config.withCredentials = true;
+    
     return config;
   },
   (error) => {
