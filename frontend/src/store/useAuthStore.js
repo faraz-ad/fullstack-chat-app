@@ -27,37 +27,37 @@ export const useAuthStore = create((set, get) => ({
     }
     
     try {
-      // First check if backend is healthy
-      try {
-        await axiosInstance.get("/health");
-      } catch (healthError) {
-        console.log("Backend health check failed, retrying auth check anyway");
-      }
+      // Set auth user to null first to allow navigation
+      set({ authUser: null, isCheckingAuth: false });
       
-      const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data });
-      get().connectSocket();
-    } catch (error) {
-      console.log("Error in checkAuth:", error);
-      // Handle different types of errors
-      if (error.response) {
-        // Server responded with error status
-        if (error.response.status === 401) {
-          // User is not authenticated, this is normal for new visitors
-          console.log("User not authenticated, redirecting to login");
+      // Try to check auth in background (non-blocking)
+      try {
+        const res = await axiosInstance.get("/auth/check");
+        set({ authUser: res.data });
+        get().connectSocket();
+      } catch (error) {
+        console.log("Error in checkAuth:", error);
+        // Handle different types of errors
+        if (error.response) {
+          // Server responded with error status
+          if (error.response.status === 401) {
+            // User is not authenticated, this is normal for new visitors
+            console.log("User not authenticated, this is normal");
+          } else {
+            console.error("Auth check failed:", error.response.data);
+          }
+        } else if (error.request) {
+          // Request was made but no response (CORS/Network error)
+          console.error("Auth check network error:", error.request);
         } else {
-          console.error("Auth check failed:", error.response.data);
+          // Something else happened
+          console.error("Auth check error:", error.message);
         }
-      } else if (error.request) {
-        // Request was made but no response (CORS/Network error)
-        console.error("Auth check network error:", error.request);
-      } else {
-        // Something else happened
-        console.error("Auth check error:", error.message);
+        // Keep authUser as null to allow navigation
       }
-      set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
+    } catch (error) {
+      console.error("Unexpected error in checkAuth:", error);
+      set({ authUser: null, isCheckingAuth: false });
     }
   },
 
