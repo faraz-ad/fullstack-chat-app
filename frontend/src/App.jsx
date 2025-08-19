@@ -25,7 +25,7 @@ const App = () => {
   // Show loading state while checking auth
   if (isCheckingAuth) {
     return (
-      <div data-theme={theme} className="h-screen flex items-center justify-center">
+      <div data-theme={theme} className="min-h-dvh flex items-center justify-center">
         <div className="loading loading-spinner loading-lg"></div>
       </div>
     );
