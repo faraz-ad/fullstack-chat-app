@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 import http from "http";
 import express from "express";
 
@@ -48,7 +49,29 @@ const userSocketMap = {}; // {userId: socketId}
 io.on("connection", (socket) => {
   console.log("A user connected", socket.id);
 
-  const userId = socket.handshake.query.userId;
+  // Authenticate user via JWT from cookie or auth header passed in handshake
+  let userId = null;
+  try {
+    const { authorization } = socket.handshake.auth || {};
+    const tokenFromAuth = authorization?.startsWith("Bearer ") ? authorization.split(" ")[1] : null;
+    const tokenFromCookie = socket.request?.headers?.cookie?.split(';')
+      .map(c => c.trim())
+      .find(c => c.startsWith('jwt='))?.split('=')[1];
+
+    const token = tokenFromAuth || tokenFromCookie;
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      userId = decoded?.userId || null;
+    }
+  } catch (e) {
+    console.log('Socket auth failed:', e.message);
+  }
+
+  // Fallback to query userId only if JWT absent (legacy)
+  if (!userId) {
+    userId = socket.handshake.query.userId;
+  }
+
   if (userId) userSocketMap[userId] = socket.id;
 
   // io.emit() is used to send events to all the connected clients

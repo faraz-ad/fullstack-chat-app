@@ -22,10 +22,11 @@ export const useAuthStore = create((set, get) => ({
       
       // Try to get user from localStorage first
       const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
       if (storedUser) {
         const user = JSON.parse(storedUser);
         set({ authUser: user, isCheckingAuth: false });
-        get().connectSocket();
+        get().connectSocket(token);
         return;
       }
 
@@ -57,7 +58,7 @@ export const useAuthStore = create((set, get) => ({
         // Store user in localStorage for persistence
         localStorage.setItem('user', JSON.stringify(user));
         set({ authUser: user });
-        get().connectSocket();
+        get().connectSocket(localStorage.getItem('token'));
       } catch (error) {
         console.log("Error in checkAuth:", error);
         if (error.response) {
@@ -87,13 +88,14 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.post("/auth/signup", data);
       console.log("Signup successful:", res.data);
       
-      const user = res.data;
+      const { token, ...user } = res.data;
       // Store user in localStorage for persistence
       localStorage.setItem('user', JSON.stringify(user));
+      if (token) localStorage.setItem('token', token);
       set({ authUser: user });
       
       toast.success("Account created successfully");
-      get().connectSocket();
+      get().connectSocket(token);
       
       // Navigate to home page after successful signup
       console.log("Redirecting to home page...");
@@ -120,16 +122,17 @@ export const useAuthStore = create((set, get) => ({
       const res = await axiosInstance.post("/auth/login", data);
       console.log("Login successful:", res.data);
       
-      const user = res.data;
+      const { token, ...user } = res.data;
       // Store user in localStorage for persistence
       localStorage.setItem('user', JSON.stringify(user));
+      if (token) localStorage.setItem('token', token);
       set({ authUser: user });
       
       toast.success("Logged in successfully");
 
       // Wait a moment for the cookie to be set, then connect socket
       setTimeout(() => {
-        get().connectSocket();
+        get().connectSocket(token || localStorage.getItem('token'));
       }, 100);
       
       // Navigate to home page after successful login
@@ -211,14 +214,14 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  connectSocket: () => {
+  connectSocket: (token) => {
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
 
     const socket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
+      auth: token ? { authorization: `Bearer ${token}` } : undefined,
+      query: token ? undefined : { userId: authUser._id },
+      withCredentials: true,
     });
     socket.connect();
 
